@@ -5,9 +5,12 @@ services:
     container_name: springboot-app
     environment:
       - SPRING_PROFILES_ACTIVE=prod
+    expose:
+      - "8080"   # HTTP / static files
+      - "8000"   # Netty-SocketIO
     networks:
       - net
-
+    restart: unless-stopped
 
   nginx:
     build: ./nginx
@@ -18,33 +21,10 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./ssl:/etc/nginx/ssl
+      - ./ssl:/etc/nginx/ssl:ro
     networks:
       - net
-
-# unnecessary for development on local environment
-#  coturn:
-#    image: instrumentisto/coturn
-#    container_name: rtcbackend-coturn-1
-#    restart: always
-#    # Obligamos a Coturn a usar configuraciones seguras por comando directo
-#    command:
-#      - -n
-#      - --lt-cred-mech
-#      - --fingerprint
-#      - --realm=username
-#      - --static-auth-secret=password
-#      - --external-ip=192.168.0.3
-#      - --cert=/etc/coturn/ssl/certificate.pem
-#      - --pkey=/etc/coturn/ssl/private_key.pem
-#    ports:
-#      - "3478:3478/udp"
-#      - "3478:3478/tcp"
-#      - "5349:5349/udp" # Puerto estándar para TURNS (Seguro)
-#      - "5349:5349/tcp" # Puerto estándar para TURNS (Seguro)
-#      - "65435-65535:65435-65535/udp"
-#    volumes:
-#      - ./ssl:/etc/coturn/ssl:ro
+    restart: unless-stopped
 
 networks:
   net:
