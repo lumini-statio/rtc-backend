@@ -81,18 +81,16 @@ public class SocketHandler {
     }
 
     @OnEvent("offer")
+    // SocketHandler.java — onOffer y onAnswer
     public void onOffer(SocketIOClient client, Map<String, Object> payload) {
         String room = (String) payload.get("room");
-        Object sdp = payload.get("sdp");
-        sendToOthers(client, room, "offer", sdp);
-        printLog("onOffer", client, room);
+        sendToOthers(client, room, "offer", payload.get("sdp")); // ok si el cliente lo espera así
     }
 
     @OnEvent("answer")
     public void onAnswer(SocketIOClient client, Map<String, Object> payload) {
         String room = (String) payload.get("room");
-        Object sdp = payload.get("sdp");
-        sendToOthers(client, room, "answer", sdp);
+        sendToOthers(client, room, "answer", payload.get("sdp"));
         printLog("onAnswer", client, room);
     }
 
