@@ -30,6 +30,16 @@ public class SocketHandler {
     public void onConnect(SocketIOClient client) {
         System.out.println("Client connected: " + client.getSessionId());
         String clientId = client.getSessionId().toString();
+
+        String room = users.remove(clientId);
+
+        if (room != null && !room.isEmpty()) {
+            client.getNamespace()
+                    .getRoomOperations(room)
+                    .sendEvent("userDisconnected", clientId);
+
+            rooms.remove(room);
+        }
         users.put(clientId, "");
     }
 
@@ -69,6 +79,8 @@ public class SocketHandler {
 
     @OnEvent("ready")
     public void onReady(SocketIOClient client, String room, AckRequest ackRequest) {
+        if (room == null || room.isEmpty()) return;
+
         sendToOthers(client, room, "ready", room);
         printLog("onReady", client, room);
     }
@@ -76,6 +88,8 @@ public class SocketHandler {
     @OnEvent("candidate")
     public void onCandidate(SocketIOClient client, Map<String, Object> payload) {
         String room = (String) payload.get("room");
+        if (room == null) return;
+
         sendToOthers(client, room, "candidate", payload);
         printLog("onCandidate", client, room);
     }
@@ -84,19 +98,37 @@ public class SocketHandler {
     // SocketHandler.java — onOffer y onAnswer
     public void onOffer(SocketIOClient client, Map<String, Object> payload) {
         String room = (String) payload.get("room");
-        sendToOthers(client, room, "offer", payload.get("sdp")); // ok si el cliente lo espera así
+        if (room == null) return;
+
+        sendToOthers(client, room, "offer", payload.get("sdp"));
+        printLog("onAnswer", client, room);
     }
 
     @OnEvent("answer")
     public void onAnswer(SocketIOClient client, Map<String, Object> payload) {
         String room = (String) payload.get("room");
+        if (room == null) return;
+
         sendToOthers(client, room, "answer", payload.get("sdp"));
         printLog("onAnswer", client, room);
     }
 
     @OnEvent("leaveRoom")
     public void onLeaveRoom(SocketIOClient client, String room) {
+        if (room == null || room.isEmpty()) return;
+
         client.leaveRoom(room);
+
+        String clientId = client.getSessionId().toString();
+        users.put(clientId, "");
+
+        String callerId = rooms.get(room);
+        if (clientId.equals(callerId)) rooms.remove(room);
+
+        client.getNamespace()
+                .getRoomOperations(room)
+                .sendEvent("userDisconnected", client, room);
+
         printLog("onLeaveRoom", client, room);
     }
 
