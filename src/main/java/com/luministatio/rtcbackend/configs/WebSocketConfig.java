@@ -20,6 +20,7 @@ public class WebSocketConfig {
                 new com.corundumstudio.socketio.Configuration();
         config.setHostname(host);
         config.setPort(port);
+        config.setOrigin("*");
         return new SocketIOServer(config);
     }
 }
