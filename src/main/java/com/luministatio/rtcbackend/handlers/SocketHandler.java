@@ -7,7 +7,6 @@ import com.corundumstudio.socketio.annotation.OnConnect;
 import com.corundumstudio.socketio.annotation.OnDisconnect;
 import com.corundumstudio.socketio.annotation.OnEvent;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 import lombok.extern.slf4j.Slf4j;
@@ -31,17 +30,18 @@ public class SocketHandler {
     public void onConnect(SocketIOClient client) {
         System.out.println("Client connected: " + client.getSessionId());
         String clientId = client.getSessionId().toString();
-        users.put(clientId, null);
+        users.put(clientId, "");
     }
 
     @OnDisconnect
     public void onDisconnect(SocketIOClient client) {
         String clientId = client.getSessionId().toString();
         String room = users.get(clientId);
-        if (!Objects.isNull(room)) {
-            System.out.println(String.format("Client disconnected: %s from : %s", clientId, room));
+        if (room != null && !room.isEmpty()) {
             users.remove(clientId);
             client.getNamespace().getRoomOperations(room).sendEvent("userDisconnected", clientId);
+        } else {
+            users.remove(clientId);
         }
         printLog("onDisconnect", client, room);
     }
@@ -69,14 +69,14 @@ public class SocketHandler {
 
     @OnEvent("ready")
     public void onReady(SocketIOClient client, String room, AckRequest ackRequest) {
-        client.getNamespace().getBroadcastOperations().sendEvent("ready", room);
+        sendToOthers(client, room, "ready", room);
         printLog("onReady", client, room);
     }
 
     @OnEvent("candidate")
     public void onCandidate(SocketIOClient client, Map<String, Object> payload) {
         String room = (String) payload.get("room");
-        client.getNamespace().getRoomOperations(room).sendEvent("candidate", payload);
+        sendToOthers(client, room, "candidate", payload);
         printLog("onCandidate", client, room);
     }
 
@@ -84,7 +84,7 @@ public class SocketHandler {
     public void onOffer(SocketIOClient client, Map<String, Object> payload) {
         String room = (String) payload.get("room");
         Object sdp = payload.get("sdp");
-        client.getNamespace().getRoomOperations(room).sendEvent("offer", sdp);
+        sendToOthers(client, room, "offer", sdp);
         printLog("onOffer", client, room);
     }
 
@@ -92,7 +92,7 @@ public class SocketHandler {
     public void onAnswer(SocketIOClient client, Map<String, Object> payload) {
         String room = (String) payload.get("room");
         Object sdp = payload.get("sdp");
-        client.getNamespace().getRoomOperations(room).sendEvent("answer", sdp);
+        sendToOthers(client, room, "answer", sdp);
         printLog("onAnswer", client, room);
     }
 
@@ -100,6 +100,14 @@ public class SocketHandler {
     public void onLeaveRoom(SocketIOClient client, String room) {
         client.leaveRoom(room);
         printLog("onLeaveRoom", client, room);
+    }
+
+    private void sendToOthers(SocketIOClient sender, String room, String event, Object data) {
+        server.getRoomOperations(room).getClients().forEach(c -> {
+            if (!c.getSessionId().equals(sender.getSessionId())) {
+                c.sendEvent(event, data);
+            }
+        });
     }
 
     private static void printLog(String header, SocketIOClient client, String room) {
