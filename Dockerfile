@@ -9,7 +9,7 @@
 #RUN mvn package -DskipTests
 
 # Step : Package image
-FROM openjdk:25-jdk-slim
-COPY --from=build /app/target/*.jar app.jar
+FROM ubuntu/jdk:25-26.04_edge
+COPY ./rtcbackend-1.0.0.jar app.jar
 EXPOSE 8080 8000
 ENTRYPOINT ["java", "-jar" , "app.jar"]
