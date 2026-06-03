@@ -21,6 +21,8 @@ public class WebSocketConfig {
         config.setHostname(host);
         config.setPort(port);
         config.setOrigin("*");
+        config.setAllowHeaders("*");
+        config.setAllowCustomRequests(true);
         return new SocketIOServer(config);
     }
 }

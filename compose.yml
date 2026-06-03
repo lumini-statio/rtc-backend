@@ -6,8 +6,8 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=prod
     expose:
-      - "8080"   # HTTP / static files
-      - "8000"   # Netty-SocketIO
+      - "8080"
+      - "8000"
     networks:
       - net
     restart: unless-stopped

@@ -1,34 +1,48 @@
-# Spring Boot WebRTC Peer-to-Peer Video Communication Room Based
-
+# luminicall-backend 
+## Spring Boot Websockets backend for a webRTC client
+##
 #### Technologies:
 
-- WebRTC
-- Socket.IO
-- BootStrap
+- Netty-SocketIO
 
-
-WebRTC (Web Real-Time Communication): An open-source project that provides real-time communication between web browsers and mobile applications. Mostly used for video, audio communications, screen sharing, and streaming.
-
-SocketIO: A JavaScript library designed for real-time, bidirectional communication. In this project, I have implemented "netty-socket.io" ( Java Spring Boot compatible) as a signaling mechanism.
-
+<hr>
 
 ### Instructions
-
 
 #### write your local ip for each step
 
 1) **Generate certificates:**
-    - Usá una terminal estilo Unix (bash, git bash, etc)
+    - Use a Unix-like terminal (bash, git bash, etc)
     - write your local ip address of your computer/host like `192.168.0.3`
-    - please create an empty ssl folder under the project directory
+    - if you're on linux: 
+       ```bash
+          ip -br addr show | grep 192.168
+       ```
+    - if you're on windows: 
+      ```bash
+         ipconfig | findstr "192.168"
+      ```
 
+<hr>
 
-`mkdir ssl && openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout ssl/private_key.pem -out ssl/certificate.pem -subj "/C=Ar/ST=Buenos Aires/L=Tigre/O=Organizacion/OU=Departamento/CN=<TU_IP>"`
+2) **generate your keys**
+   - execute the following command:
+      ```bash
+      mkdir ssl && openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout ssl/private_key.pem -out ssl/certificate.pem -subj "/C=Ar/ST=Buenos Aires/L=Tigre/O=Organization/OU=Departament/CN=<YOUR_IP>"
+      ```
 
-2) **update nginx.conf**
+<hr>
 
-change `<YOUR_LOCAL_IP>` with your local ip same as step 1
-
-3) **build docker image**
-
-`docker-compose up -d --build`
+3) **build docker image **
+   1. **with docker compose**
+   ```bash
+   docker compose up -d --build
+   ``` 
+   
+   2. **only docker if you already have configured a proxy**
+   
+   ```bash
+   docker build -t your-image-name:latest && docker run -d --name your-container your-image-name
+   ``` 
+##
+##
