@@ -33,7 +33,7 @@
 
 <hr>
 
-3) **build docker image **
+3) **build docker image**
    1. **with docker compose**
    ```bash
    docker compose up -d --build
